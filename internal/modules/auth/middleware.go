@@ -3,8 +3,8 @@ package auth
 import (
 	"strings"
 	"github.com/gin-gonic/gin"
-	"github.com/user/gsupert/internal/common"
-	"github.com/user/gsupert/internal/config"
+	"gsupert/internal/common"
+	"gsupert/internal/config"
 )
 
 func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {

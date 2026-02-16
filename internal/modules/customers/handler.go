@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/user/gsupert/internal/common"
+	"gsupert/internal/common"
 )
 
 type Handler struct {

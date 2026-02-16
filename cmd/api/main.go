@@ -6,11 +6,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/user/gsupert/internal/config"
-	"github.com/user/gsupert/internal/db"
-	"github.com/user/gsupert/internal/modules/auth"
-	"github.com/user/gsupert/internal/modules/customers"
-	"github.com/user/gsupert/internal/modules/users"
+	"gsupert/internal/config"
+	"gsupert/internal/db"
+	"gsupert/internal/modules/auth"
+	"gsupert/internal/modules/customers"
+	"gsupert/internal/modules/users"
 )
 
 func main() {

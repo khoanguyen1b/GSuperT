@@ -1,4 +1,4 @@
-module github.com/user/gsupert
+module gsupert
 
 go 1.24.0
 

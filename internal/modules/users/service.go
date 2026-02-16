@@ -6,8 +6,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/user/gsupert/internal/config"
-	"github.com/user/gsupert/internal/modules/auth"
+	"gsupert/internal/config"
+	"gsupert/internal/modules/auth"
 	"golang.org/x/crypto/bcrypt"
 )
 

@@ -3,7 +3,7 @@ package db
 import (
 	"fmt"
 	"log"
-	"github.com/user/gsupert/internal/config"
+	"gsupert/internal/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
