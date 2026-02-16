@@ -22,6 +22,7 @@ type Config struct {
 	SMTPUser        string `mapstructure:"SMTP_USER"`
 	SMTPPass        string `mapstructure:"SMTP_PASS"`
 	SMTPFrom        string `mapstructure:"SMTP_FROM"`
+	SMTPFromName    string `mapstructure:"SMTP_FROM_NAME"`
 }
 
 func LoadConfig() *Config {

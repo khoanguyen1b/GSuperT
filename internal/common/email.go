@@ -17,12 +17,13 @@ func NewEmailService(cfg *config.Config) *EmailService {
 func (s *EmailService) SendEmail(to, subject, body string) error {
 	addr := fmt.Sprintf("%s:%s", s.cfg.SMTPHost, s.cfg.SMTPPort)
 	from := s.cfg.SMTPFrom
+	fromName := s.cfg.SMTPFromName
 	
-	msg := fmt.Sprintf("From: %s\r\n"+
+	msg := fmt.Sprintf("From: %s <%s>\r\n"+
 		"To: %s\r\n"+
 		"Subject: %s\r\n"+
 		"\r\n"+
-		"%s\r\n", from, to, subject, body)
+		"%s\r\n", fromName, from, to, subject, body)
 
 	// Auth can be nil for Mailpit local testing
 	var auth smtp.Auth
