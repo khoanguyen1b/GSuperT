@@ -68,6 +68,16 @@ curl -X POST http://localhost:8080/auth/refresh \
      -d '{"refresh_token": "<REFRESH_TOKEN>"}'
 ```
 
+## Postman Collection
+Dự án cung cấp sẵn file collection để bạn có thể import vào Postman một cách nhanh chóng:
+- File: `GSuperT_Collection.postman_collection.json`
+- **Cách sử dụng:**
+  1. Mở Postman, chọn **Import** và kéo file này vào.
+  2. Collection đã được cấu hình sẵn các biến:
+     - `base_url`: Mặc định là `http://localhost:8080`.
+     - `access_token` & `refresh_token`: Sẽ tự động cập nhật sau khi gọi API **Login** hoặc **Refresh Token** nhờ vào script test tích hợp sẵn.
+  3. Để gọi các API bảo mật (Users, Customers), hãy đảm bảo bạn đã thực hiện **Login** trước đó.
+
 ## Xử lý sự cố (Troubleshooting)
 
 ### Xung đột cổng (Port Conflict)
