@@ -17,6 +17,11 @@ type Config struct {
 	JWTRefreshSecret string `mapstructure:"JWT_REFRESH_SECRET"`
 	AccessTokenExp  int    `mapstructure:"ACCESS_TOKEN_EXP_MINUTES"`
 	RefreshTokenExp int    `mapstructure:"REFRESH_TOKEN_EXP_DAYS"`
+	SMTPHost        string `mapstructure:"SMTP_HOST"`
+	SMTPPort        string `mapstructure:"SMTP_PORT"`
+	SMTPUser        string `mapstructure:"SMTP_USER"`
+	SMTPPass        string `mapstructure:"SMTP_PASS"`
+	SMTPFrom        string `mapstructure:"SMTP_FROM"`
 }
 
 func LoadConfig() *Config {

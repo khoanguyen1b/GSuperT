@@ -92,3 +92,33 @@ func (h *Handler) DeleteCustomer(c *gin.Context) {
 
 	common.Success(c, http.StatusOK, gin.H{"message": "customer deleted"})
 }
+
+func (h *Handler) ExportPDF(c *gin.Context) {
+	c.Header("Content-Disposition", "attachment; filename=customers.pdf")
+	c.Header("Content-Type", "application/pdf")
+
+	if err := h.service.ExportPDF(c.Writer); err != nil {
+		common.Error(c, http.StatusInternalServerError, "SERVER_ERROR", err.Error())
+		return
+	}
+}
+
+func (h *Handler) ExportExcel(c *gin.Context) {
+	c.Header("Content-Disposition", "attachment; filename=customers.xlsx")
+	c.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+	if err := h.service.ExportExcel(c.Writer); err != nil {
+		common.Error(c, http.StatusInternalServerError, "SERVER_ERROR", err.Error())
+		return
+	}
+}
+
+func (h *Handler) SendEmail(c *gin.Context) {
+	id := c.Param("id")
+	if err := h.service.SendGreetingEmail(id); err != nil {
+		common.Error(c, http.StatusInternalServerError, "SERVER_ERROR", err.Error())
+		return
+	}
+
+	common.Success(c, http.StatusOK, gin.H{"message": "email sent successfully"})
+}

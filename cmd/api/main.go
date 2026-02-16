@@ -6,16 +6,19 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"gsupert/internal/common"
 	"gsupert/internal/config"
 	"gsupert/internal/db"
 	"gsupert/internal/modules/auth"
 	"gsupert/internal/modules/customers"
+	"gsupert/internal/modules/notes"
 	"gsupert/internal/modules/users"
 )
 
 func main() {
 	cfg := config.LoadConfig()
 	database := db.InitDB(cfg)
+	emailService := common.NewEmailService(cfg)
 
 	r := gin.Default()
 	
@@ -37,14 +40,17 @@ func main() {
 	// Initialize Repositories
 	userRepo := users.NewRepository(database)
 	customerRepo := customers.NewRepository(database)
+	noteRepo := notes.NewRepository(database)
 
 	// Initialize Services
 	userService := users.NewService(userRepo, cfg)
-	customerService := customers.NewService(customerRepo)
+	customerService := customers.NewService(customerRepo, emailService)
+	noteService := notes.NewService(noteRepo, emailService)
 
 	// Initialize Handlers
 	userHandler := users.NewHandler(userService)
 	customerHandler := customers.NewHandler(customerService)
+	noteHandler := notes.NewHandler(noteService)
 
 	// Health check
 	r.GET("/health", func(c *gin.Context) {
@@ -78,10 +84,23 @@ func main() {
 		customerRoutes := api.Group("/customers")
 		{
 			customerRoutes.GET("", customerHandler.ListCustomers)
+			customerRoutes.GET("/export/pdf", customerHandler.ExportPDF)
+			customerRoutes.GET("/export/excel", customerHandler.ExportExcel)
+			customerRoutes.POST("/:id/send-email", customerHandler.SendEmail)
 			customerRoutes.GET("/:id", customerHandler.GetCustomer)
 			customerRoutes.POST("", customerHandler.CreateCustomer)
 			customerRoutes.PUT("/:id", customerHandler.UpdateCustomer)
 			customerRoutes.DELETE("/:id", customerHandler.DeleteCustomer)
+		}
+
+		// Notes CRUD
+		noteRoutes := api.Group("/notes")
+		{
+			noteRoutes.GET("", noteHandler.ListNotes)
+			noteRoutes.GET("/:id", noteHandler.GetNote)
+			noteRoutes.POST("", noteHandler.CreateNote)
+			noteRoutes.PUT("/:id", noteHandler.UpdateNote)
+			noteRoutes.DELETE("/:id", noteHandler.DeleteNote)
 		}
 	}
 
