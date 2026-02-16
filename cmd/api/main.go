@@ -22,6 +22,9 @@ func main() {
 
 	r := gin.Default()
 	
+	// Error Logger Middleware (Logs only errors >= 400)
+	r.Use(common.ErrorLogger())
+	
 	// CORS middleware
 	r.Use(func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")

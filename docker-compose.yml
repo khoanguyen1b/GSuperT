@@ -29,18 +29,23 @@ services:
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       ACCESS_TOKEN_EXP_MINUTES: ${ACCESS_TOKEN_EXP_MINUTES}
       REFRESH_TOKEN_EXP_DAYS: ${REFRESH_TOKEN_EXP_DAYS}
+      SMTP_HOST: mailpit
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_FROM: ${SMTP_FROM}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME}
     ports:
       - "8080:8080"
     volumes:
       - .:/app
+      - ./logs:/app/logs
     depends_on:
       db:
         condition: service_healthy
 
   mailpit:
     image: axllent/mailpit
-    container_name: axis-mailpit
-    hostname: axis-mailpit
+    container_name: mailpit
+    hostname: mailpit
     ports:
       - "8025:8025"
       - "1025:1025"

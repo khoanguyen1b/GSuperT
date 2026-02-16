@@ -44,3 +44,4 @@ build-errors.log
 
 # App specific
 /bin/
+logs/
