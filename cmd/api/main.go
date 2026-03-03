@@ -12,6 +12,7 @@ import (
 	"gsupert/internal/modules/auth"
 	"gsupert/internal/modules/customers"
 	"gsupert/internal/modules/notes"
+	textanalyze "gsupert/internal/modules/text_analyze"
 	"gsupert/internal/modules/users"
 )
 
@@ -21,10 +22,10 @@ func main() {
 	emailService := common.NewEmailService(cfg)
 
 	r := gin.Default()
-	
+
 	// Error Logger Middleware (Logs only errors >= 400)
 	r.Use(common.ErrorLogger())
-	
+
 	// CORS middleware
 	r.Use(func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
@@ -49,16 +50,21 @@ func main() {
 	userService := users.NewService(userRepo, cfg)
 	customerService := customers.NewService(customerRepo, emailService)
 	noteService := notes.NewService(noteRepo, emailService)
+	textAnalyzeService := textanalyze.NewService(textanalyze.NewMockSyntaxProvider())
 
 	// Initialize Handlers
 	userHandler := users.NewHandler(userService)
 	customerHandler := customers.NewHandler(customerService)
 	noteHandler := notes.NewHandler(noteService)
+	textAnalyzeHandler := textanalyze.NewHandler(textAnalyzeService)
 
 	// Health check
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
+
+	// Text analyze (MVP)
+	r.POST("/api/text-analyze", textAnalyzeHandler.Analyze)
 
 	// Auth routes
 	authGroup := r.Group("/auth")

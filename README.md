@@ -68,6 +68,21 @@ curl -X POST http://localhost:8080/auth/refresh \
      -d '{"refresh_token": "<REFRESH_TOKEN>"}'
 ```
 
+### 6. Text Analyze (MVP)
+`POST /api/text-analyze`
+
+```bash
+curl -X POST http://localhost:8080/api/text-analyze \
+     -H "Content-Type: application/json" \
+     -d '{
+       "text": "I want to go out and take it with us. The beautiful car is in the city.",
+       "options": {
+         "linking": { "mode": "mvp", "max_chunk_words": 12 },
+         "syntax": { "mode": "mvp" }
+       }
+     }'
+```
+
 ## Postman Collection
 Dự án cung cấp sẵn file collection để bạn có thể import vào Postman một cách nhanh chóng:
 - File: `GSuperT_Collection.postman_collection.json`
