@@ -10,6 +10,7 @@ const (
 	MaxTextLength        = 20000
 	DefaultLinkingMode   = "mvp"
 	DefaultSyntaxMode    = "mvp"
+	GPTSyntaxMode        = "gpt"
 	DefaultMaxChunkWords = 12
 )
 
@@ -49,8 +50,8 @@ func ValidateAnalyzeRequest(req *AnalyzeRequest) error {
 		}
 
 		if req.Options.Syntax != nil {
-			if req.Options.Syntax.Mode != "" && req.Options.Syntax.Mode != DefaultSyntaxMode {
-				fields["options.syntax.mode"] = "only 'mvp' is supported"
+			if req.Options.Syntax.Mode != "" && req.Options.Syntax.Mode != DefaultSyntaxMode && req.Options.Syntax.Mode != GPTSyntaxMode {
+				fields["options.syntax.mode"] = "only 'mvp' and 'gpt' are supported"
 			}
 		}
 	}

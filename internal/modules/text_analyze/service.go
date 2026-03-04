@@ -3,14 +3,24 @@ package text_analyze
 import "context"
 
 type Service struct {
-	syntaxProvider SyntaxProvider
+	syntaxProvider    SyntaxProvider
+	gptSyntaxProvider SyntaxProvider
 }
 
-func NewService(syntaxProvider SyntaxProvider) *Service {
+func NewService(syntaxProvider SyntaxProvider, gptSyntaxProvider ...SyntaxProvider) *Service {
 	if syntaxProvider == nil {
 		syntaxProvider = NewMockSyntaxProvider()
 	}
-	return &Service{syntaxProvider: syntaxProvider}
+
+	var gptProvider SyntaxProvider
+	if len(gptSyntaxProvider) > 0 {
+		gptProvider = gptSyntaxProvider[0]
+	}
+
+	return &Service{
+		syntaxProvider:    syntaxProvider,
+		gptSyntaxProvider: gptProvider,
+	}
 }
 
 func (s *Service) Analyze(ctx context.Context, req AnalyzeRequest) (AnalyzeResponse, error) {
@@ -24,7 +34,12 @@ func (s *Service) Analyze(ctx context.Context, req AnalyzeRequest) (AnalyzeRespo
 
 	linkingChunks := BuildLinkingChunks(sentences, options.maxChunkWords)
 
-	syntaxSentences, err := s.syntaxProvider.Parse(ctx, req.Text)
+	syntaxProvider, err := s.resolveSyntaxProvider(options.syntaxMode)
+	if err != nil {
+		return AnalyzeResponse{}, err
+	}
+
+	syntaxSentences, err := syntaxProvider.Parse(ctx, req.Text)
 	if err != nil {
 		return AnalyzeResponse{}, err
 	}
@@ -73,4 +88,20 @@ func resolveOptions(opts *AnalyzeOptions) resolvedOptions {
 	}
 
 	return out
+}
+
+func (s *Service) resolveSyntaxProvider(mode string) (SyntaxProvider, error) {
+	if mode == GPTSyntaxMode {
+		if s.gptSyntaxProvider == nil {
+			return nil, &ValidationError{
+				Message: "validation failed",
+				Fields: map[string]string{
+					"options.syntax.mode": "mode 'gpt' is not configured on server",
+				},
+			}
+		}
+		return s.gptSyntaxProvider, nil
+	}
+
+	return s.syntaxProvider, nil
 }

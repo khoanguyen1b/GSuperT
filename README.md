@@ -21,8 +21,9 @@ Thực hiện các lệnh sau để khởi chạy dự án:
    docker compose up --build
    ```
 
-3. **Chạy Migrations (Tạo bảng và dữ liệu mẫu):**
-   Mở một terminal mới và chạy lệnh sau (bên trong container api):
+3. **Migrations tự chạy khi API khởi động:**
+   - Khi `api` service start, ứng dụng sẽ tự chạy toàn bộ SQL migrations trong `internal/migrations` (bao gồm bảng `app_settings`).
+   - Nếu bạn vẫn muốn chạy thủ công, có thể dùng:
    ```bash
    docker compose exec api migrate -path internal/migrations -database "postgres://admin:abcd@123@db:5432/appdb?sslmode=disable" up
    ```
@@ -69,10 +70,10 @@ curl -X POST http://localhost:8080/auth/refresh \
 ```
 
 ### 6. Text Analyze (MVP)
-`POST /api/text-analyze`
+`POST /text-analyze`
 
 ```bash
-curl -X POST http://localhost:8080/api/text-analyze \
+curl -X POST http://localhost:8080/text-analyze \
      -H "Content-Type: application/json" \
      -d '{
        "text": "I want to go out and take it with us. The beautiful car is in the city.",
@@ -81,6 +82,63 @@ curl -X POST http://localhost:8080/api/text-analyze \
          "syntax": { "mode": "mvp" }
        }
      }'
+```
+
+### 7. Text Analyze với GPT Syntax
+Nếu muốn kết quả `syntax` chính xác hơn, cấu hình thêm trong `.env`:
+
+```bash
+OPENAI_API_KEY=<your_openai_key>
+OPENAI_MODEL=gpt-4.1-mini
+OPENAI_BASE_URL=https://api.openai.com/v1
+```
+
+Sau đó gọi API với `options.syntax.mode = "gpt"`:
+
+```bash
+curl -X POST http://localhost:8080/text-analyze \
+     -H "Content-Type: application/json" \
+     -d '{
+       "text": "I want to go out and take it with us. The beautiful car is in the city.",
+       "options": {
+         "linking": { "mode": "mvp", "max_chunk_words": 12 },
+         "syntax": { "mode": "gpt" }
+       }
+     }'
+```
+
+### 8. App Settings (Lưu API key theo key-value)
+Các API này yêu cầu `Authorization: Bearer <ACCESS_TOKEN_ADMIN>`.
+
+Hiện tại enum key hỗ trợ trong source:
+- `gpt_api_key`
+
+#### 8.1 Upsert nhiều key-value
+`POST /settings/bulk`
+
+```bash
+curl -X POST http://localhost:8080/settings/bulk \
+     -H "Authorization: Bearer <ACCESS_TOKEN_ADMIN>" \
+     -H "Content-Type: application/json" \
+     -d '[
+       { "key": "gpt_api_key", "value": "sk-xxxx" }
+     ]'
+```
+
+#### 8.2 Lấy danh sách settings
+`GET /settings`
+
+```bash
+curl -X GET http://localhost:8080/settings \
+     -H "Authorization: Bearer <ACCESS_TOKEN_ADMIN>"
+```
+
+#### 8.3 Lấy setting theo key
+`GET /settings/:key`
+
+```bash
+curl -X GET http://localhost:8080/settings/gpt_api_key \
+     -H "Authorization: Bearer <ACCESS_TOKEN_ADMIN>"
 ```
 
 ## Postman Collection

@@ -677,6 +677,94 @@
       }
     },
     {
+      "name": "Settings",
+      "item": [
+        {
+          "name": "Bulk Upsert Settings",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"key\": \"gpt_api_key\",\n    \"value\": \"sk-xxxx\"\n  }\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/settings/bulk",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "settings",
+                "bulk"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/settings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "settings"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Setting By Key",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/settings/:key",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "settings",
+                ":key"
+              ],
+              "variable": [
+                {
+                  "key": "key",
+                  "value": "gpt_api_key"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{access_token}}",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
       "name": "Text Analyze",
       "item": [
         {
@@ -722,12 +810,11 @@
               }
             },
             "url": {
-              "raw": "{{base_url}}/api/text-analyze",
+              "raw": "{{base_url}}/text-analyze",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
-                "api",
                 "text-analyze"
               ]
             }
@@ -773,12 +860,11 @@
               }
             },
             "url": {
-              "raw": "{{base_url}}/api/text-analyze",
+              "raw": "{{base_url}}/text-analyze",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
-                "api",
                 "text-analyze"
               ]
             }

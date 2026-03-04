@@ -45,6 +45,12 @@ func (h *Handler) Analyze(c *gin.Context) {
 
 	resp, err := h.service.Analyze(c.Request.Context(), req)
 	if err != nil {
+		var validationErr *ValidationError
+		if errors.As(err, &validationErr) {
+			writeValidationError(c, validationErr)
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error: ErrorBody{
 				Code:    "INTERNAL_ERROR",

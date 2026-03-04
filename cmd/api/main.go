@@ -12,12 +12,16 @@ import (
 	"gsupert/internal/modules/auth"
 	"gsupert/internal/modules/customers"
 	"gsupert/internal/modules/notes"
+	"gsupert/internal/modules/settings"
 	textanalyze "gsupert/internal/modules/text_analyze"
 	"gsupert/internal/modules/users"
 )
 
 func main() {
 	cfg := config.LoadConfig()
+	if err := db.RunMigrations(cfg); err != nil {
+		log.Fatal("Failed to run migrations: ", err)
+	}
 	database := db.InitDB(cfg)
 	emailService := common.NewEmailService(cfg)
 
@@ -45,17 +49,30 @@ func main() {
 	userRepo := users.NewRepository(database)
 	customerRepo := customers.NewRepository(database)
 	noteRepo := notes.NewRepository(database)
+	settingsRepo := settings.NewRepository(database)
 
 	// Initialize Services
 	userService := users.NewService(userRepo, cfg)
 	customerService := customers.NewService(customerRepo, emailService)
 	noteService := notes.NewService(noteRepo, emailService)
-	textAnalyzeService := textanalyze.NewService(textanalyze.NewMockSyntaxProvider())
+	settingsService := settings.NewService(settingsRepo)
+	defaultSyntaxProvider := textanalyze.NewMockSyntaxProvider()
+	gptSyntaxProvider := textanalyze.NewOpenAISyntaxProvider(
+		cfg.OpenAIAPIKey,
+		cfg.OpenAIModel,
+		cfg.OpenAIBaseURL,
+		nil,
+	)
+	if gptSyntaxProvider != nil {
+		log.Printf("Text analyze GPT syntax provider enabled")
+	}
+	textAnalyzeService := textanalyze.NewService(defaultSyntaxProvider, gptSyntaxProvider)
 
 	// Initialize Handlers
 	userHandler := users.NewHandler(userService)
 	customerHandler := customers.NewHandler(customerService)
 	noteHandler := notes.NewHandler(noteService)
+	settingsHandler := settings.NewHandler(settingsService)
 	textAnalyzeHandler := textanalyze.NewHandler(textAnalyzeService)
 
 	// Health check
@@ -64,7 +81,7 @@ func main() {
 	})
 
 	// Text analyze (MVP)
-	r.POST("/api/text-analyze", textAnalyzeHandler.Analyze)
+	r.POST("/text-analyze", textAnalyzeHandler.Analyze)
 
 	// Auth routes
 	authGroup := r.Group("/auth")
@@ -110,6 +127,15 @@ func main() {
 			noteRoutes.POST("", noteHandler.CreateNote)
 			noteRoutes.PUT("/:id", noteHandler.UpdateNote)
 			noteRoutes.DELETE("/:id", noteHandler.DeleteNote)
+		}
+
+		// Settings (Admin only)
+		settingRoutes := api.Group("/settings")
+		settingRoutes.Use(auth.RoleMiddleware("admin"))
+		{
+			settingRoutes.POST("/bulk", settingsHandler.UpsertSettings)
+			settingRoutes.GET("", settingsHandler.ListSettings)
+			settingRoutes.GET("/:key", settingsHandler.GetSettingByKey)
 		}
 	}
 
