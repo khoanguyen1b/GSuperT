@@ -69,3 +69,19 @@ func TestService_Analyze_GPTModeUsesGPTProvider(t *testing.T) {
 	assert.True(t, stubGPT.called)
 	assert.Len(t, resp.Syntax.Sentences, 1)
 }
+
+func TestService_Analyze_GPTModeWithTypedNilProvider_ReturnsValidationError(t *testing.T) {
+	var nilGPTProvider *textanalyze.OpenAISyntaxProvider
+	service := textanalyze.NewService(textanalyze.NewMockSyntaxProvider(), nilGPTProvider)
+	req := textanalyze.AnalyzeRequest{
+		Text: "Hello world.",
+		Options: &textanalyze.AnalyzeOptions{
+			Syntax: &textanalyze.SyntaxOptions{Mode: textanalyze.GPTSyntaxMode},
+		},
+	}
+
+	_, err := service.Analyze(context.Background(), req)
+	var validationErr *textanalyze.ValidationError
+	assert.ErrorAs(t, err, &validationErr)
+	assert.Equal(t, "mode 'gpt' is not configured on server", validationErr.Fields["options.syntax.mode"])
+}

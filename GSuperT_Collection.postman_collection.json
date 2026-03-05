@@ -872,6 +872,170 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Topic Conversation",
+      "item": [
+        {
+          "name": "Generate Topic Conversation (Valid)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Valid topic response shape', function () {",
+                  "  pm.expect(jsonData.valid).to.eql(true);",
+                  "  pm.expect(jsonData).to.have.property('topic');",
+                  "  pm.expect(jsonData).to.have.property('validation_message');",
+                  "  pm.expect(jsonData).to.have.property('turn_count');",
+                  "  pm.expect(jsonData).to.have.property('turns');",
+                  "  pm.expect(jsonData.turns).to.be.an('array');",
+                  "});",
+                  "pm.test('Has 20 turns and bilingual fields', function () {",
+                  "  pm.expect(jsonData.turn_count).to.eql(20);",
+                  "  pm.expect(jsonData.turns.length).to.eql(20);",
+                  "  pm.expect(jsonData.turns[0]).to.have.property('text_en');",
+                  "  pm.expect(jsonData.turns[0]).to.have.property('text_vi');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"Talking about travel plans at the airport\",\n  \"turns\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/topic-conversation",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "topic-conversation"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Topic Conversation (Invalid Topic)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Invalid topic returns validation result only', function () {",
+                  "  pm.expect(jsonData.valid).to.eql(false);",
+                  "  pm.expect(jsonData).to.have.property('validation_message');",
+                  "  pm.expect(jsonData).to.not.have.property('turns');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"\",\n  \"turns\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/topic-conversation",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "topic-conversation"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Topic Conversation - Invalid Turns",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Has validation error shape', function () {",
+                  "  pm.expect(jsonData).to.have.property('error');",
+                  "  pm.expect(jsonData.error.code).to.eql('VALIDATION_ERROR');",
+                  "  pm.expect(jsonData.error.fields).to.have.property('turns');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"topic\": \"Travel planning\",\n  \"turns\": 25\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/topic-conversation",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "topic-conversation"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [

@@ -141,6 +141,56 @@ curl -X GET http://localhost:8080/settings/gpt_api_key \
      -H "Authorization: Bearer <ACCESS_TOKEN_ADMIN>"
 ```
 
+### 9. Topic Conversation với GPT (validate + generate hội thoại)
+`POST /topic-conversation`
+
+Luồng xử lý:
+- Bước 1: dùng GPT để validate `topic` (kể cả khi rỗng).
+- Nếu `valid=false`: trả về message validate, không sinh hội thoại.
+- Nếu `valid=true`: gọi GPT lần 2 để sinh hội thoại tiếng Anh có bản dịch tiếng Việt cho từng lượt.
+- API key ưu tiên đọc từ `OPENAI_API_KEY`; nếu để trống thì dùng setting `gpt_api_key` trong DB.
+
+Ràng buộc:
+- `turns` (optional): từ `20` đến `100`, theo bội số `10` (20, 30, ..., 100).
+- Nếu không truyền `turns`, server dùng mặc định `20`.
+
+```bash
+curl -X POST http://localhost:8080/topic-conversation \
+     -H "Content-Type: application/json" \
+     -d '{
+       "topic": "Talking about travel plans at the airport",
+       "turns": 20
+     }'
+```
+
+Ví dụ response khi topic hợp lệ:
+
+```json
+{
+  "valid": true,
+  "topic": "Airport Travel Plans",
+  "validation_message": "Topic hợp lệ.",
+  "turn_count": 20,
+  "turns": [
+    {
+      "turn": 1,
+      "speaker": "A",
+      "text_en": "Hi, where are you flying today?",
+      "text_vi": "Chào bạn, hôm nay bạn bay đi đâu?"
+    }
+  ]
+}
+```
+
+Ví dụ response khi topic không hợp lệ:
+
+```json
+{
+  "valid": false,
+  "validation_message": "Topic rỗng hoặc không có nghĩa tiếng Anh."
+}
+```
+
 ## Postman Collection
 Dự án cung cấp sẵn file collection để bạn có thể import vào Postman một cách nhanh chóng:
 - File: `GSuperT_Collection.postman_collection.json`

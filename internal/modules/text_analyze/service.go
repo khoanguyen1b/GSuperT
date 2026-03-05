@@ -1,6 +1,9 @@
 package text_analyze
 
-import "context"
+import (
+	"context"
+	"reflect"
+)
 
 type Service struct {
 	syntaxProvider    SyntaxProvider
@@ -8,13 +11,16 @@ type Service struct {
 }
 
 func NewService(syntaxProvider SyntaxProvider, gptSyntaxProvider ...SyntaxProvider) *Service {
-	if syntaxProvider == nil {
+	if isNilSyntaxProvider(syntaxProvider) {
 		syntaxProvider = NewMockSyntaxProvider()
 	}
 
 	var gptProvider SyntaxProvider
 	if len(gptSyntaxProvider) > 0 {
 		gptProvider = gptSyntaxProvider[0]
+	}
+	if isNilSyntaxProvider(gptProvider) {
+		gptProvider = nil
 	}
 
 	return &Service{
@@ -104,4 +110,18 @@ func (s *Service) resolveSyntaxProvider(mode string) (SyntaxProvider, error) {
 	}
 
 	return s.syntaxProvider, nil
+}
+
+func isNilSyntaxProvider(provider SyntaxProvider) bool {
+	if provider == nil {
+		return true
+	}
+
+	value := reflect.ValueOf(provider)
+	switch value.Kind() {
+	case reflect.Ptr, reflect.Interface, reflect.Map, reflect.Slice, reflect.Func, reflect.Chan:
+		return value.IsNil()
+	default:
+		return false
+	}
 }

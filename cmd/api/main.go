@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"gsupert/internal/common"
@@ -14,6 +17,7 @@ import (
 	"gsupert/internal/modules/notes"
 	"gsupert/internal/modules/settings"
 	textanalyze "gsupert/internal/modules/text_analyze"
+	topicconversation "gsupert/internal/modules/topic_conversation"
 	"gsupert/internal/modules/users"
 )
 
@@ -56,9 +60,24 @@ func main() {
 	customerService := customers.NewService(customerRepo, emailService)
 	noteService := notes.NewService(noteRepo, emailService)
 	settingsService := settings.NewService(settingsRepo)
+
+	envOpenAIAPIKey := strings.TrimSpace(cfg.OpenAIAPIKey)
+	openAIAPIKey := envOpenAIAPIKey
+	if openAIAPIKey == "" {
+		setting, err := settingsService.GetByKey(string(settings.SettingKeyGPTAPIKey))
+		if err == nil {
+			openAIAPIKey = strings.TrimSpace(setting.Value)
+			if openAIAPIKey != "" {
+				log.Printf("OpenAI API key loaded from app setting '%s'", settings.SettingKeyGPTAPIKey)
+			}
+		} else if !errors.Is(err, settings.ErrSettingNotFound) {
+			log.Printf("Failed to load OpenAI API key from app settings: %v", err)
+		}
+	}
+
 	defaultSyntaxProvider := textanalyze.NewMockSyntaxProvider()
 	gptSyntaxProvider := textanalyze.NewOpenAISyntaxProvider(
-		cfg.OpenAIAPIKey,
+		openAIAPIKey,
 		cfg.OpenAIModel,
 		cfg.OpenAIBaseURL,
 		nil,
@@ -67,6 +86,26 @@ func main() {
 		log.Printf("Text analyze GPT syntax provider enabled")
 	}
 	textAnalyzeService := textanalyze.NewService(defaultSyntaxProvider, gptSyntaxProvider)
+	topicConversationProvider := topicconversation.NewOpenAIProvider(
+		envOpenAIAPIKey,
+		cfg.OpenAIModel,
+		cfg.OpenAIBaseURL,
+		nil,
+		func(ctx context.Context) (string, error) {
+			setting, err := settingsService.GetByKey(string(settings.SettingKeyGPTAPIKey))
+			if err != nil {
+				if errors.Is(err, settings.ErrSettingNotFound) {
+					return "", nil
+				}
+				return "", err
+			}
+			return strings.TrimSpace(setting.Value), nil
+		},
+	)
+	if topicConversationProvider != nil {
+		log.Printf("Topic conversation GPT provider enabled")
+	}
+	topicConversationService := topicconversation.NewService(topicConversationProvider)
 
 	// Initialize Handlers
 	userHandler := users.NewHandler(userService)
@@ -74,6 +113,7 @@ func main() {
 	noteHandler := notes.NewHandler(noteService)
 	settingsHandler := settings.NewHandler(settingsService)
 	textAnalyzeHandler := textanalyze.NewHandler(textAnalyzeService)
+	topicConversationHandler := topicconversation.NewHandler(topicConversationService)
 
 	// Health check
 	r.GET("/health", func(c *gin.Context) {
@@ -82,6 +122,7 @@ func main() {
 
 	// Text analyze (MVP)
 	r.POST("/text-analyze", textAnalyzeHandler.Analyze)
+	r.POST("/topic-conversation", topicConversationHandler.Generate)
 
 	// Auth routes
 	authGroup := r.Group("/auth")
